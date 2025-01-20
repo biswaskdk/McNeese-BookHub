@@ -2,10 +2,10 @@
 <html>
     <head>
         <title>Login</title>
-        <link rel="stylesheet" href="main.css">
+        <link rel="stylesheet" href="login.css">
     </head>
     <body>
-        <form method="post" action="index.php">
+        <form method="post" action="login.php">
             <h1>Login</h1>
             <div>
                 <input type="text" placeholder="Username" name="username">
