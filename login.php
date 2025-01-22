@@ -15,7 +15,7 @@
             </div>
             <input type="submit" value="Login" name="login_Btn">
             <div>
-                Don't Onish have any account with us dear friend?
+                Don't have an account!
             </div>
         </form>
     </body>
