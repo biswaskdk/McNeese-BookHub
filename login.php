@@ -30,7 +30,7 @@ if(isset($_POST['login_Btn'])){
     while($row = mysqli_fetch_assoc($result)){
         $resultPassword = $row['password'];
         if($password == $resultPassword){
-            header('Location:bookHub.html');
+            header('Location:home.html');
         }else{
             echo "<script>
             alert('Login unsuccessful');
