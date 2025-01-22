@@ -15,7 +15,7 @@
             </div>
             <input type="submit" value="Login" name="login_Btn">
             <div>
-                Don't have an account ?
+                Don't  you have an account with us?
             </div>
         </form>
     </body>
