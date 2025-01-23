@@ -1,0 +1,101 @@
+
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background-color: #f4f4f9;
+    margin: 0;
+    padding: 0;
+}
+
+
+h1 {
+    font-family: 'Great Vibes', cursive;
+    font-style: italic;
+    font-display: swap;
+    color: #003366;
+}
+
+
+.image-container {
+    display: inline-block;
+    background-color: #003366;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+
+img {
+    display: block;
+    margin: auto;
+}
+
+
+.login-form {
+    width: 300px;
+    margin: 0 auto;
+    background-color: #ffffff;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+
+.login-form label {
+    display: block;
+    text-align: left;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+
+.login-form input[type="text"],
+.login-form input[type="password"] {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-sizing: border-box;
+}
+
+
+.login-form input[type="submit"] {
+    background-color: #003366;
+    color: white;
+    border: none;
+    padding: 10px;
+    width: 100%;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+
+.login-form input[type="submit"]:hover {
+    background-color: #00509e;
+}
+
+
+.forgot-password {
+    display: block;
+    margin-top: 10px;
+    color: #003366;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+
+.forgot-password:hover {
+    text-decoration: underline;
+}
+header {
+    position: relative; 
+    background-color: #f4f4f9;
+}
+
+.logo {
+    position: absolute; 
+    top: 20px; 
+    left: 20px; 
+}
