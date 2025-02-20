@@ -1,44 +1,54 @@
-
-<!--This is a home page of a McNeese bookhub  -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Online Bookstore</title>
-    <link rel="stylesheet" href="style.css"> 
+    <title>University Bookstore</title>
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="stylehome.css"> <!-- Link to your existing CSS file -->
 </head>
 <body>
+
     <header>
-        <!--section for the logo placeholder and heading-->
         <div class="logo">
-            <img src="ML.png" alt="Bookstore Logo" width="150">
+            <img src="university-logo.png" alt="University Logo" width="100">
         </div>
-        <h1>Welcome to Our Bookstore</h1>
+        <h1>University Bookstore</h1>
     </header>
-    <!--section for the search button and heading-->
+
     <div class="search-container">
-        <input type="text" id="searchInput" placeholder="Search for books..." class="search-bar">
-        <button id="searchButton" class="search-button">Search</button>
+        <h2>Best books in university</h2>
+        <form action="" method="get">
+            <input type="text" placeholder="Search by title or keywords" name="search">
+            <select name="author">
+                <option value="">Filter by Author</option>
+            </select>
+            <select name="price">
+            </select>
+            <input type="submit" value="Search">
+        </form>
     </div>
 
-    <section class="books-container">
+    <div class="featured-books-container">
         <h2>Featured Books</h2>
-        <div id="bookList" class="book-list">
-           
+        <div class="featured-books">
+            <div class="book">
+                <img src="/McNeese Bookhub/McNeese-BookHub/The Bible.jpg" alt="Book 1" width="120">
+                <h3>The Bible</h3>
+                <p>Author: Author 1</p>
+                <p>Price: $25</p>
+            </div>
+            <div class="book">
+                <img src="McNeese Bookhub/McNeese-BookHub/Calculus.jpg" alt="Book 2" width="120">
+                <h3>Calculus</h3>
+                <p>Author: Author 2</p>
+                <p>Price: $18</p>
+            </div>
         </div>
-    </section>
+    </div>
 
-    <footer>
-        <p>&copy; 2025 Online Bookstore. All rights reserved.</p>
-    </footer>
+    <div class="results-container">
+    </div>
 
-    <script>
-       
-        document.getElementById('searchButton').addEventListener('click', function() {
-            const query = document.getElementById('searchInput').value;
-            alert('Searching for: ' + query);
-        });
-    </script>
 </body>
 </html>
