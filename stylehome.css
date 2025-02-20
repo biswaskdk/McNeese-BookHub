@@ -20,9 +20,9 @@ header {
 
 .featured-books {
     display: grid;
-    grid-template-columns: repeat(2, 1fr); /* Two columns layout */
-    gap: 20px; /* Space between books */
-    justify-items: center; /* Center the books in their grid cells */
+    grid-template-columns: repeat(2, 1fr); 
+    gap: 20px; 
+    justify-items: center; 
 }
 
 .book {
