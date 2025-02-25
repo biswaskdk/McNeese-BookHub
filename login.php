@@ -1,41 +1,33 @@
-<!DOCTYPE html>
-<html>
-    <head>
-        <title>Login</title>
-        <link rel="stylesheet" href="login.css">
-    </head>
-    <body>
-        <form method="post" action="login.php">
-            <h1>Login</h1>
-            <div>
-                <input type="text" placeholder="Username" name="username">
-            </div>
-            <div>
-                <input type="password" placeholder="Password" name="password">
-            </div>
-            <input type="submit" value="Login" name="login_Btn">
-            <div>
-                Don't have an account ?
-            </div>
-        </form>
-    </body>
-</html>
 <?php
-$conn = mysqli_connect("localhost", "root", "");
-if(isset($_POST['login_Btn'])){
-    $username=$_POST['username'];
-    $password=$_POST['password'];
-    $sql= "SELECT * FROM websitelogin.logindetails WHERE username = '$username'";
-    $result = mysqli_query($conn,$sql);
-    while($row = mysqli_fetch_assoc($result)){
+// Database connection
+$conn = mysqli_connect("localhost", "root", "", "websitelogin");
+
+// Check connection
+if (!$conn) {
+    die("Connection failed: " . mysqli_connect_error());
+}
+
+// Handle form submission
+if (isset($_POST['login_Btn'])) {
+    $username = mysqli_real_escape_string($conn, $_POST['username']);
+    $password = $_POST['password'];
+
+    // Query to fetch user details
+    $sql = "SELECT * FROM logindetails WHERE username = '$username'";
+    $result = mysqli_query($conn, $sql);
+
+    if (mysqli_num_rows($result) > 0) {
+        $row = mysqli_fetch_assoc($result);
         $resultPassword = $row['password'];
-        if($password == $resultPassword){
-            header('Location:home.html');
-        }else{
-            echo "<script>
-            alert('Login unsuccessful');
-            </script>";
+
+        if ($password === $resultPassword) {
+            header('Location: home.php');
+            exit();
+        } else {
+            echo "<script>alert('Login unsuccessful: Incorrect password.'); window.history.back();</script>";
         }
+    } else {
+        echo "<script>alert('Login unsuccessful: User not found.'); window.history.back();</script>";
     }
 }
 ?>

@@ -1,9 +1,39 @@
 <!DOCTYPE html>
-<html>
-    <head>
-        <title>McNeese BookHub</title>
-    </head>
-    <body>
-        <h1>Welcome</h1>
-    </body>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Home - McNeese BookHub</title>
+    <link rel="stylesheet" href="home.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <a href="home.html">Home</a> |
+            <a href="cart_checkout.html">Cart & Checkout</a> |
+            <a href="admin.html">Admin</a> |
+            <a href="login.html">Logout</a>
+        </nav>
+    </header>
+
+    <section class="search-section">
+        <form action="home.php" method="GET">
+            <input type="text" name="search" placeholder="Search books or office supplies..." value="<?php echo isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>">
+            <input type="submit" value="Search">
+        </form>
+    </section>
+
+    <section class="products-section">
+        <h2>Available Books</h2>
+        <div class="product-container">
+            <?php include 'home.php'; displayProducts('Book'); ?>
+        </div>
+    </section>
+
+    <section class="products-section">
+        <h2>Available Office Supplies</h2>
+        <div class="product-container">
+            <?php displayProducts('Office Supply'); ?>
+        </div>
+    </section>
+</body>
 </html>

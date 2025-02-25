@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Cart & Checkout - McNeese BookHub</title>
+    <link rel="stylesheet" href="cart_checkout.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <a href="home.html">Home</a> | 
+            <a href="admin.html">Admin</a> | 
+            <a href="login.html">Logout</a>
+        </nav>
+    </header>
+
+    <section class="cart-section">
+        <h1>Your Shopping Cart</h1>
+        <table>
+            <tr>
+                <th>Item</th>
+                <th>Quantity</th>
+                <th>Price</th>
+            </tr>
+            <tr>
+                <td>Book 1</td>
+                <td>2</td>
+                <td>$20.00</td>
+            </tr>
+            <tr>
+                <td>Notebook</td>
+                <td>1</td>
+                <td>$5.00</td>
+            </tr>
+            <tr>
+                <td colspan="2"><strong>Total:</strong></td>
+                <td><strong>$45.00</strong></td>
+            </tr>
+        </table>
+    </section>
+
+    <section class="checkout-section">
+        <h2>Checkout</h2>
+        <form action="cart_checkout.php" method="POST">
+            <input type="text" name="address" placeholder="Enter your shipping address" required><br>
+            <input type="submit" value="Place Order" name="checkout_Btn">
+        </form>
+    </section>
+</body>
+</html>
