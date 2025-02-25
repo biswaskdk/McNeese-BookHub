@@ -1,44 +1,47 @@
 <?php
-// Database connection
-$conn = mysqli_connect("localhost", "root", "", "mcneese_bookhub");
-if (!$conn) {
-    die("Connection failed: " . mysqli_connect_error());
+session_start();
+include 'db_connect.php';
+
+// Redirect to login if not logged in
+if (!isset($_SESSION['username'])) {
+    header('Location: login.html');
+    exit();
 }
 
-/**
- * Displays products based on the given category.
- *
- * @param string $category The category to filter products ('Book' or 'Office Supply').
- */
-function displayProducts($category) {
+// Initialize cart if not set
+if (!isset($_SESSION['cart'])) {
+    $_SESSION['cart'] = [];
+}
+
+// Handle Add to Cart
+if (isset($_POST['add_to_cart'])) {
+    $productId = $_POST['product_id'];
+    $_SESSION['cart'][$productId] = ($_SESSION['cart'][$productId] ?? 0) + 1;
+    header('Location: home.php'); // Prevent form resubmission
+    exit();
+}
+
+// Fetch products from database
+function fetchProducts($category) {
     global $conn;
-    $search = isset($_GET['search']) ? mysqli_real_escape_string($conn, $_GET['search']) : '';
-
-    $sql = "SELECT * FROM products WHERE category = '$category' 
-            AND (name LIKE '%$search%' OR description LIKE '%$search%' OR author LIKE '%$search%' OR isbn LIKE '%$search%')";
+    $sql = "SELECT * FROM products WHERE category = '$category'";
     $result = mysqli_query($conn, $sql);
+    return $result ? mysqli_fetch_all($result, MYSQLI_ASSOC) : [];
+}
 
-    if (mysqli_num_rows($result) > 0) {
-        while ($product = mysqli_fetch_assoc($result)) {
-            echo '<div class="product-card">
-                <img src="' . htmlspecialchars($product['image_url']) . '" alt="' . htmlspecialchars($product['name']) . '" />
-                <h3>' . htmlspecialchars($product['name']) . '</h3>
-                <p class="category">Category: ' . htmlspecialchars($product['category']) . '</p>
-                <p>Description: ' . htmlspecialchars($product['description']) . '</p>';
-
-            if (!empty($product['author'])) {
-                echo '<p>Author: ' . htmlspecialchars($product['author']) . '</p>';
-            }
-            if (!empty($product['isbn'])) {
-                echo '<p>ISBN: ' . htmlspecialchars($product['isbn']) . '</p>';
-            }
-
-            echo '<p>Price: <span class="price">$' . number_format($product['price'], 2) . '</span></p>
-                  <p>Available: ' . htmlspecialchars($product['quantity']) . '</p>
-            </div>';
-        }
-    } else {
-        echo '<p>No products found in this category.</p>';
+// Render product cards with "Add to Cart" button
+function renderProductCards($products) {
+    foreach ($products as $product) {
+        echo "<div class='product-card'>
+                <img src='images/" . htmlspecialchars($product['image_url']) . "' alt='" . htmlspecialchars($product['name']) . "'>
+                <h3>" . htmlspecialchars($product['name']) . "</h3>
+                <p>" . htmlspecialchars($product['description']) . "</p>
+                <p>Price: \$" . number_format($product['price'], 2) . "</p>
+                <form method='POST' class='cart-form'>
+                    <input type='hidden' name='product_id' value='{$product['id']}'>
+                    <button type='submit' name='add_to_cart'>Add to Cart</button>
+                </form>
+            </div>";
     }
 }
 ?>
@@ -51,35 +54,39 @@ function displayProducts($category) {
     <link rel="stylesheet" href="home.css">
 </head>
 <body>
-    <header>
-        <nav>
-            <a href="home.php">Home</a> |
-            <a href="cart_checkout.php">Cart & Checkout</a> |
-            <a href="admin.php">Admin</a> |
-            <a href="login.php">Logout</a>
-        </nav>
-    </header>
 
-    <section class="search-section">
-        <form action="home.php" method="GET">
-            <input type="text" name="search" placeholder="Search books or office supplies..." 
-                   value="<?php echo isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>">
-            <input type="submit" value="Search">
-        </form>
-    </section>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="logo">📚 McNeese BookHub</div>
+        <ul class="nav-links">
+            <li><a href="home.php">Home</a></li>
+            <li><a href="cart_checkout.php">Cart (<?php echo array_sum($_SESSION['cart']); ?>)</a></li>
+            <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>
+                <li><a href="admin.php">Admin</a></li> <!-- Shown only for admin users -->
+            <?php endif; ?>
+            <li>
+                <?php if (isset($_SESSION['username'])): ?>
+                    <a href="logout.php">Log Out</a>
+                <?php else: ?>
+                    <a href="login.html">Log In</a>
+                <?php endif; ?>
+            </li>
+        </ul>
+    </nav>
 
-    <section class="products-section">
-        <h2>Available Books</h2>
-        <div class="product-container">
-            <?php displayProducts('Book'); ?>
-        </div>
-    </section>
+    <main>
+        <section class="products-section">
+            <h2>Available Books</h2>
+            <div class="product-container">
+                <?php renderProductCards(fetchProducts('Book')); ?>
+            </div>
 
-    <section class="products-section">
-        <h2>Available Office Supplies</h2>
-        <div class="product-container">
-            <?php displayProducts('Office Supply'); ?>
-        </div>
-    </section>
+            <h2>Available Office Supplies</h2>
+            <div class="product-container">
+                <?php renderProductCards(fetchProducts('Office Supply')); ?>
+            </div>
+        </section>
+    </main>
+
 </body>
 </html>
