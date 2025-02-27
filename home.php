@@ -2,48 +2,54 @@
 session_start();
 include 'db_connect.php';
 
-// Redirect to login if not logged in
-if (!isset($_SESSION['username'])) {
-    header('Location: login.html');
-    exit();
-}
-
 // Initialize cart if not set
 if (!isset($_SESSION['cart'])) {
     $_SESSION['cart'] = [];
 }
 
-// Handle Add to Cart
+// Handle Add to Cart request (via AJAX)
 if (isset($_POST['add_to_cart'])) {
-    $productId = $_POST['product_id'];
-    $_SESSION['cart'][$productId] = ($_SESSION['cart'][$productId] ?? 0) + 1;
-    header('Location: home.php'); // Prevent form resubmission
+    $product_id = intval($_POST['product_id']);
+    $_SESSION['cart'][$product_id] = ($_SESSION['cart'][$product_id] ?? 0) + 1;
+    echo json_encode(['cart_count' => array_sum($_SESSION['cart'])]);
     exit();
 }
 
-// Fetch products from database
-function fetchProducts($category) {
+// Fetch cart count
+$cart_count = array_sum($_SESSION['cart'] ?? []);
+
+// Function to fetch products
+function getProducts($category, $offset = 0, $limit = 4, $search = '') {
     global $conn;
-    $sql = "SELECT * FROM products WHERE category = '$category'";
-    $result = mysqli_query($conn, $sql);
-    return $result ? mysqli_fetch_all($result, MYSQLI_ASSOC) : [];
+    $searchQuery = mysqli_real_escape_string($conn, $search);
+    $sql = "SELECT * FROM products 
+            WHERE category = '$category' 
+            AND (name LIKE '%$searchQuery%' OR description LIKE '%$searchQuery%') 
+            LIMIT $offset, $limit";
+    return mysqli_query($conn, $sql);
+}
+// Handle AJAX "See More" requests (return only products, no header/footer)
+if (isset($_GET['loadMore'])) {
+    $category = mysqli_real_escape_string($conn, $_GET['category']);
+    $offset = intval($_GET['offset']);
+    $limit = intval($_GET['limit']);
+    $search = $_GET['search'] ?? '';
+
+    $result = getProducts($category, $offset, $limit, $search);
+
+    while ($product = mysqli_fetch_assoc($result)) {
+        $image = !empty($product['image_url']) ? htmlspecialchars($product['image_url']) : 'images/default.jpg';
+        echo '<div class="product-card">
+                <img src="' . $image . '" alt="' . htmlspecialchars($product['name']) . '">
+                <h3>' . htmlspecialchars($product['name']) . '</h3>
+                <p>' . htmlspecialchars($product['description']) . '</p>
+                <p class="price">$' . number_format($product['price'], 2) . '</p>
+                <button onclick="addToCart(' . $product['id'] . ')">Add to Cart</button>
+              </div>';
+    }
+    exit(); // Prevent rendering the full page again
 }
 
-// Render product cards with "Add to Cart" button
-function renderProductCards($products) {
-    foreach ($products as $product) {
-        echo "<div class='product-card'>
-                <img src='images/" . htmlspecialchars($product['image_url']) . "' alt='" . htmlspecialchars($product['name']) . "'>
-                <h3>" . htmlspecialchars($product['name']) . "</h3>
-                <p>" . htmlspecialchars($product['description']) . "</p>
-                <p>Price: \$" . number_format($product['price'], 2) . "</p>
-                <form method='POST' class='cart-form'>
-                    <input type='hidden' name='product_id' value='{$product['id']}'>
-                    <button type='submit' name='add_to_cart'>Add to Cart</button>
-                </form>
-            </div>";
-    }
-}
 ?>
 
 <!DOCTYPE html>
@@ -52,41 +58,111 @@ function renderProductCards($products) {
     <meta charset="UTF-8">
     <title>Home - McNeese BookHub</title>
     <link rel="stylesheet" href="home.css">
+    <script>
+        // Function to handle Add to Cart
+        function addToCart(productId) {
+            fetch('home.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'add_to_cart=1&product_id=' + productId
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('cart-count').textContent = data.cart_count;
+                alert('Product added to cart!');
+            });
+        }
+
+        // Load more products
+        function loadMore(category) {
+            const container = document.getElementById(category + "-products");
+            const offset = container.children.length;
+            const limit = 4;
+            const search = document.querySelector('input[name="search"]').value;
+
+            fetch(`home.php?loadMore=true&category=${category}&offset=${offset}&limit=${limit}&search=${encodeURIComponent(search)}`)
+                .then(response => response.text())
+                .then(data => {
+                    container.insertAdjacentHTML('beforeend', data);
+                });
+        }
+
+        // Clear search input
+        function clearSearch() {
+            document.querySelector('input[name="search"]').value = '';
+            window.location.href = 'home.php';
+        }
+    </script>
 </head>
 <body>
+<header class="navbar">
+    <div class="logo">McNeese BookHub</div>
+    <ul class="nav-links">
+        <li><a href="home.php">Home</a></li>
+        <li><a href="cart_checkout.php">Cart (<span id="cart-count"><?= $cart_count ?></span>)</a></li>
+        <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>
+            <li><a href="admin.php">Admin</a></li>
+        <?php endif; ?>
+        <li><a href="<?= isset($_SESSION['username']) ? 'logout.php' : 'login.php' ?>">
+            <?= isset($_SESSION['username']) ? 'Logout' : 'Login' ?>
+        </a></li>
+    </ul>
+</header>
 
-    <!-- Navigation Bar -->
-    <nav class="navbar">
-        <div class="logo">📚 McNeese BookHub</div>
-        <ul class="nav-links">
-            <li><a href="home.php">Home</a></li>
-            <li><a href="cart_checkout.php">Cart (<?php echo array_sum($_SESSION['cart']); ?>)</a></li>
-            <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>
-                <li><a href="admin.php">Admin</a></li> <!-- Shown only for admin users -->
+<main>
+    <section class="search-section">
+        <form method="GET" class="search-form">
+            <input type="text" name="search" placeholder="Search products..." value="<?= htmlspecialchars($_GET['search'] ?? '') ?>">
+            <button type="submit">Search</button>
+            <?php if (!empty($_GET['search'])): ?>
+                <button type="button" class="clear-btn" onclick="clearSearch()">Clear</button>
             <?php endif; ?>
-            <li>
-                <?php if (isset($_SESSION['username'])): ?>
-                    <a href="logout.php">Log Out</a>
-                <?php else: ?>
-                    <a href="login.html">Log In</a>
-                <?php endif; ?>
-            </li>
-        </ul>
-    </nav>
+        </form>
+    </section>
 
-    <main>
-        <section class="products-section">
-            <h2>Available Books</h2>
-            <div class="product-container">
-                <?php renderProductCards(fetchProducts('Book')); ?>
-            </div>
+    <section class="products-section">
+        <h2>Available Books</h2>
+        <div id="Book-products" class="product-container">
+            <?php
+            $bookResult = getProducts('Book', 0, 4, $_GET['search'] ?? '');
+            while ($product = mysqli_fetch_assoc($bookResult)):
+                $image = !empty($product['image_url']) ? htmlspecialchars($product['image_url']) : 'images/defaultBooks.jpg';
+            ?>
+                <div class="product-card">
+                    <img src="<?= $image ?>" alt="<?= htmlspecialchars($product['name']) ?>">
+                    <h3><?= htmlspecialchars($product['name']) ?></h3>
+                    <p><?= htmlspecialchars($product['description']) ?></p>
+                    <p class="price">$<?= number_format($product['price'], 2) ?></p>
+                    <button onclick="addToCart(<?= $product['id'] ?>)">Add to Cart</button>
+                </div>
+            <?php endwhile; ?>
+        </div>
+        <div class="see-more-container">
+            <button onclick="loadMore('Book')">See More Books</button>
+        </div>
+    </section>
 
-            <h2>Available Office Supplies</h2>
-            <div class="product-container">
-                <?php renderProductCards(fetchProducts('Office Supply')); ?>
-            </div>
-        </section>
-    </main>
-
+    <section class="products-section">
+        <h2>Available Office Supplies</h2>
+        <div id="Office Supply-products" class="product-container">
+            <?php
+            $officeResult = getProducts('Office Supply', 0, 4, $_GET['search'] ?? '');
+            while ($product = mysqli_fetch_assoc($officeResult)):
+                $image = !empty($product['image_url']) ? htmlspecialchars($product['image_url']) : 'images/defaultOfficeSupplies.jpg';
+            ?>
+                <div class="product-card">
+                    <img src="<?= $image ?>" alt="<?= htmlspecialchars($product['name']) ?>">
+                    <h3><?= htmlspecialchars($product['name']) ?></h3>
+                    <p><?= htmlspecialchars($product['description']) ?></p>
+                    <p class="price">$<?= number_format($product['price'], 2) ?></p>
+                    <button onclick="addToCart(<?= $product['id'] ?>)">Add to Cart</button>
+                </div>
+            <?php endwhile; ?>
+        </div>
+        <div class="see-more-container">
+            <button onclick="loadMore('Office Supply')">See More Office Supplies</button>
+        </div>
+    </section>
+</main>
 </body>
 </html>

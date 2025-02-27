@@ -2,53 +2,30 @@
 session_start();
 include 'db_connect.php';
 
-// Redirect if user is not logged in
-if (!isset($_SESSION['username'])) {
-    header('Location: login.php');
+// Check if user is logged in
+$user_id = $_SESSION['user_id'] ?? null;
+
+if (!$user_id) {
+    echo "<p>Please <a href='login.php'>log in</a> to view your cart.</p>";
     exit();
 }
 
-// Initialize cart if not set
-if (!isset($_SESSION['cart'])) {
-    $_SESSION['cart'] = [];
+// Add to cart functionality
+if (isset($_POST['product_id'])) {
+    $product_id = intval($_POST['product_id']);
+    $_SESSION['cart'][$product_id] = ($_SESSION['cart'][$product_id] ?? 0) + 1;
 }
 
-// Handle item removal
+// Remove item from cart
 if (isset($_GET['remove'])) {
-    $productId = $_GET['remove'];
-    unset($_SESSION['cart'][$productId]);
+    $product_id = intval($_GET['remove']);
+    unset($_SESSION['cart'][$product_id]);
+    header("Location: cart_checkout.php");
+    exit();
 }
 
-// Handle payment submission
-if (isset($_POST['checkout'])) {
-    $paymentMethod = $_POST['payment_method'];
-    echo "<script>alert('Order placed successfully using $paymentMethod!');</script>";
-    $_SESSION['cart'] = []; // Clear cart after checkout
-}
-
-// Fetch product details from cart
-function getCartItems() {
-    global $conn;
-    $cart = $_SESSION['cart'];
-    $items = [];
-
-    if (!empty($cart)) {
-        $ids = implode(',', array_keys($cart));
-        $sql = "SELECT * FROM products WHERE id IN ($ids)";
-        $result = mysqli_query($conn, $sql);
-
-        while ($product = mysqli_fetch_assoc($result)) {
-            $product['quantity'] = $cart[$product['id']];
-            $product['total_price'] = $product['price'] * $product['quantity'];
-            $items[] = $product;
-        }
-    }
-
-    return $items;
-}
-
-$cartItems = getCartItems();
-$totalPrice = array_sum(array_column($cartItems, 'total_price'));
+$cart_items = $_SESSION['cart'] ?? [];
+$total_price = 0;
 ?>
 
 <!DOCTYPE html>
@@ -56,22 +33,25 @@ $totalPrice = array_sum(array_column($cartItems, 'total_price'));
 <head>
     <meta charset="UTF-8">
     <title>Cart & Checkout - McNeese BookHub</title>
-    <link rel="stylesheet" href="css/cart_checkout.css">
+    <link rel="stylesheet" href="cart_checkout.css">
+    <style>
+        
+    </style>
 </head>
 <body>
-    <header>
-        <h1>Cart & Checkout</h1>
+
+    <header class="navbar">
+        <div class="logo">📚 McNeese BookHub</div>
         <nav>
-            <a href="home.php">Home</a> |
-            <a href="logout.php">Logout</a>
+            <a href="home.php">Home</a>
+            <a href="logout.php">Log Out</a>
         </nav>
     </header>
 
-    <section class="cart-section">
-        <h2>Your Cart</h2>
-        <?php if (empty($cartItems)): ?>
-            <p>Your cart is empty.</p>
-        <?php else: ?>
+    <div class="container">
+        <h2>Your Shopping Cart</h2>
+
+        <?php if (!empty($cart_items)): ?>
             <table>
                 <thead>
                     <tr>
@@ -83,40 +63,48 @@ $totalPrice = array_sum(array_column($cartItems, 'total_price'));
                     </tr>
                 </thead>
                 <tbody>
-                    <?php foreach ($cartItems as $item): ?>
-                        <tr>
-                            <td><?php echo htmlspecialchars($item['name']); ?></td>
-                            <td><?php echo $item['quantity']; ?></td>
-                            <td>$<?php echo number_format($item['price'], 2); ?></td>
-                            <td>$<?php echo number_format($item['total_price'], 2); ?></td>
-                            <td><a href="?remove=<?php echo $item['id']; ?>">Remove</a></td>
-                        </tr>
+                    <?php foreach ($cart_items as $product_id => $quantity): ?>
+                        <?php
+                            $product_query = mysqli_query($conn, "SELECT * FROM products WHERE id = '$product_id'");
+                            $product = mysqli_fetch_assoc($product_query);
+
+                            if ($product):
+                                $item_total = $product['price'] * $quantity;
+                                $total_price += $item_total;
+                        ?>
+                            <tr>
+                                <td><?= htmlspecialchars($product['name']) ?></td>
+                                <td><?= $quantity ?></td>
+                                <td>$<?= number_format($product['price'], 2) ?></td>
+                                <td>$<?= number_format($item_total, 2) ?></td>
+                                <td><a href="?remove=<?= $product_id ?>" class="remove-btn">Remove</a></td>
+                            </tr>
+                        <?php endif; ?>
                     <?php endforeach; ?>
                 </tbody>
-                <tfoot>
-                    <tr>
-                        <td colspan="3"><strong>Total Price:</strong></td>
-                        <td><strong>$<?php echo number_format($totalPrice, 2); ?></strong></td>
-                        <td></td>
-                    </tr>
-                </tfoot>
             </table>
-        <?php endif; ?>
-    </section>
 
-    <?php if (!empty($cartItems)): ?>
-        <section class="checkout-section">
-            <h2>Payment Options</h2>
-            <form method="POST">
-                <label for="payment_method">Select Payment Method:</label>
-                <select name="payment_method" id="payment_method" required>
-                    <option value="Credit Card">Credit Card</option>
-                    <option value="PayPal">PayPal</option>
-                    <option value="Cash on Delivery">Cash on Delivery</option>
-                </select>
-                <button type="submit" name="checkout">Place Order</button>
-            </form>
-        </section>
-    <?php endif; ?>
+            <div class="cart-summary">
+                Total Price: $<?= number_format($total_price, 2) ?>
+            </div>
+
+            <section class="payment-section">
+                <h3>Choose Payment Method</h3>
+                <form action="process_payment.php" method="POST">
+                    <select name="payment_method" required>
+                        <option value="" disabled selected>Select a payment method</option>
+                        <option value="Credit Card">Credit Card</option>
+                        <option value="PayPal">PayPal</option>
+                        <option value="Cash on Delivery">Cash on Delivery</option>
+                    </select>
+                    <button type="submit">Confirm Payment</button>
+                </form>
+            </section>
+
+        <?php else: ?>
+            <p>Your cart is empty. <a href="home.php">Continue shopping</a>.</p>
+        <?php endif; ?>
+    </div>
+
 </body>
 </html>
