@@ -2,6 +2,8 @@
 session_start();
 include 'db_connect.php';
 
+$login_error = "";
+
 if (isset($_POST['login_Btn'])) {
     $username = mysqli_real_escape_string($conn, $_POST['username']);
     $password = $_POST['password'];
@@ -12,7 +14,6 @@ if (isset($_POST['login_Btn'])) {
     if ($result && mysqli_num_rows($result) > 0) {
         $user = mysqli_fetch_assoc($result);
 
-        // Check password (plain text comparison — consider hashing in production)
         if ($password === $user['password']) {
             $_SESSION['username'] = $user['username'];
             $_SESSION['role'] = $user['role'];
@@ -29,30 +30,53 @@ if (isset($_POST['login_Btn'])) {
             header('Location: ' . ($user['role'] === 'admin' ? 'admin.php' : 'home.php'));
             exit();
         } else {
-            echo "<script>alert('Incorrect password'); window.location.href='login.php';</script>";
+            $login_error = "Incorrect password.";
         }
     } else {
-        echo "<script>alert('User not found'); window.location.href='login.php';</script>";
+        $login_error = "User not found.";
     }
 }
 ?>
 
-<!-- Login Form HTML -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Login - McNeese BookHub</title>
+    <title>Login - McNeese Bookstore</title>
     <link rel="stylesheet" href="login.css">
+    <style>
+        .error-message {
+            background-color: #f8d7da;
+            color: #842029;
+            border: 1px solid #f5c2c7;
+            padding: 10px;
+            margin-top: 15px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+    </style>
 </head>
 <body>
-    <div class="login-container">
-        <h2>Login to McNeese BookHub</h2>
-        <form method="POST">
-            <input type="text" name="username" placeholder="Username" required><br>
-            <input type="password" name="password" placeholder="Password" required><br>
-            <button type="submit" name="login_Btn">Login</button>
+    <div class="image-container">
+        <img src="images/MSU.png" alt="MSU Logo" width="280" height="140">
+    </div>
+    <h1>McNeese Bookstore</h1>
+
+    <div class="login-form">
+        <form action="login.php" method="POST">
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" placeholder="Enter your username" required>
+
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" placeholder="Enter your password" required>
+
+            <input type="submit" value="Log In" name="login_Btn">
         </form>
+
+        <?php if (!empty($login_error)): ?>
+            <div class="error-message"><?= htmlspecialchars($login_error) ?></div>
+        <?php endif; ?>
+
         <p style="margin-top: 10px;">
             <a href="forgot_password.php">Forgot Password?</a>
         </p>

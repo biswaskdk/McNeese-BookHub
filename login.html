@@ -3,26 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login Page</title>
+    <title>Login - McNeese Bookstore</title>
     <link rel="stylesheet" href="login.css">
 </head>
 <body>
     <div class="image-container">
         <img src="images/MSU.png" alt="MSU Logo" width="280" height="140">
     </div>
+
     <h1>McNeese Bookstore</h1>
-    
+
     <div class="login-form">
         <form action="login.php" method="POST">
             <label for="username">Username</label>
             <input type="text" id="username" name="username" placeholder="Enter your username" required>
-            
+
             <label for="password">Password</label>
             <input type="password" id="password" name="password" placeholder="Enter your password" required>
-            
+
             <input type="submit" value="Log In" name="login_Btn">
         </form>
-        <a href="forgot-password.html" class="forgot-password">Forgot Password?</a>
+
+        <p class="forgot-password">
+            <a href="forgot_password.php">Forgot Password?</a>
+        </p>
     </div>
 </body>
 </html>
