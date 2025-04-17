@@ -39,6 +39,17 @@ if (isset($_POST['add_product'])) {
 
 // Fetch all products
 $products = mysqli_query($conn, "SELECT * FROM products");
+
+// Fetch all orders with user info
+$orders = mysqli_query($conn, "
+    SELECT o.id AS order_id, o.created_at, o.payment_method,
+           l.username, oi.product_id, p.name AS product_name, oi.quantity, oi.price
+    FROM orders o
+    JOIN logindetails l ON o.user_id = l.id
+    JOIN order_items oi ON o.id = oi.order_id
+    JOIN products p ON oi.product_id = p.id
+    ORDER BY o.id DESC
+");
 ?>
 
 <!DOCTYPE html>
@@ -107,6 +118,36 @@ $products = mysqli_query($conn, "SELECT * FROM products");
                             <td>$<?= number_format($product['price'], 2) ?></td>
                             <td><?= $product['quantity'] ?></td>
                             <td><a href="edit_product.php?id=<?= $product['id'] ?>">Edit</a></td>
+                        </tr>
+                    <?php endwhile; ?>
+                </tbody>
+            </table>
+        </section>
+
+        <section class="order-section">
+            <h2>All Orders</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Order #</th>
+                        <th>User</th>
+                        <th>Item</th>
+                        <th>Qty</th>
+                        <th>Price</th>
+                        <th>Payment</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php while ($order = mysqli_fetch_assoc($orders)): ?>
+                        <tr>
+                            <td>ORD-<?= str_pad($order['order_id'], 4, "0", STR_PAD_LEFT) ?></td>
+                            <td><?= htmlspecialchars($order['username']) ?></td>
+                            <td><?= htmlspecialchars($order['product_name']) ?></td>
+                            <td><?= $order['quantity'] ?></td>
+                            <td>$<?= number_format($order['price'], 2) ?></td>
+                            <td><?= htmlspecialchars($order['payment_method']) ?></td>
+                            <td><?= $order['created_at'] ?></td>
                         </tr>
                     <?php endwhile; ?>
                 </tbody>

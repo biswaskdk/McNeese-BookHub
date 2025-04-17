@@ -28,7 +28,8 @@ function getProducts($category, $offset = 0, $limit = 4, $search = '') {
             LIMIT $offset, $limit";
     return mysqli_query($conn, $sql);
 }
-// Handle AJAX "See More" requests (return only products, no header/footer)
+
+// Handle AJAX "See More" requests
 if (isset($_GET['loadMore'])) {
     $category = mysqli_real_escape_string($conn, $_GET['category']);
     $offset = intval($_GET['offset']);
@@ -39,17 +40,22 @@ if (isset($_GET['loadMore'])) {
 
     while ($product = mysqli_fetch_assoc($result)) {
         $image = !empty($product['image_url']) ? htmlspecialchars($product['image_url']) : 'images/default.jpg';
-        echo '<div class="product-card">
+        echo '<div class="product-card" onclick="toggleDetails(this)">
                 <img src="' . $image . '" alt="' . htmlspecialchars($product['name']) . '">
                 <h3>' . htmlspecialchars($product['name']) . '</h3>
                 <p>' . htmlspecialchars($product['description']) . '</p>
                 <p class="price">$' . number_format($product['price'], 2) . '</p>
-                <button onclick="addToCart(' . $product['id'] . ')">Add to Cart</button>
+                <button onclick="event.stopPropagation(); addToCart(' . $product['id'] . ')">Add to Cart</button>
+                <div class="more-details">
+                    <p><strong>Author:</strong> ' . htmlspecialchars($product['author'] ?? 'N/A') . '</p>
+                    <p><strong>ISBN:</strong> ' . htmlspecialchars($product['isbn'] ?? 'N/A') . '</p>
+                    <p><strong>Publisher:</strong> ' . htmlspecialchars($product['publisher'] ?? 'N/A') . '</p>
+                    <p><strong>Edition:</strong> ' . htmlspecialchars($product['edition'] ?? 'N/A') . '</p>
+                </div>
               </div>';
     }
-    exit(); // Prevent rendering the full page again
+    exit();
 }
-
 ?>
 
 <!DOCTYPE html>
@@ -59,7 +65,6 @@ if (isset($_GET['loadMore'])) {
     <title>Home - McNeese BookHub</title>
     <link rel="stylesheet" href="home.css">
     <script>
-        // Function to handle Add to Cart
         function addToCart(productId) {
             fetch('home.php', {
                 method: 'POST',
@@ -73,7 +78,6 @@ if (isset($_GET['loadMore'])) {
             });
         }
 
-        // Load more products
         function loadMore(category) {
             const container = document.getElementById(category + "-products");
             const offset = container.children.length;
@@ -87,16 +91,19 @@ if (isset($_GET['loadMore'])) {
                 });
         }
 
-        // Clear search input
         function clearSearch() {
             document.querySelector('input[name="search"]').value = '';
             window.location.href = 'home.php';
+        }
+
+        function toggleDetails(card) {
+            card.classList.toggle('expanded');
         }
     </script>
 </head>
 <body>
 <header class="navbar">
-    <div class="logo">McNeese BookHub</div>
+    <div class="logo">📚 McNeese BookHub</div>
     <ul class="nav-links">
         <li><a href="home.php">Home</a></li>
         <li><a href="cart_checkout.php">Cart (<span id="cart-count"><?= $cart_count ?></span>)</a></li>
@@ -128,12 +135,18 @@ if (isset($_GET['loadMore'])) {
             while ($product = mysqli_fetch_assoc($bookResult)):
                 $image = !empty($product['image_url']) ? htmlspecialchars($product['image_url']) : 'images/defaultBooks.jpg';
             ?>
-                <div class="product-card">
+                <div class="product-card" onclick="toggleDetails(this)">
                     <img src="<?= $image ?>" alt="<?= htmlspecialchars($product['name']) ?>">
                     <h3><?= htmlspecialchars($product['name']) ?></h3>
                     <p><?= htmlspecialchars($product['description']) ?></p>
                     <p class="price">$<?= number_format($product['price'], 2) ?></p>
-                    <button onclick="addToCart(<?= $product['id'] ?>)">Add to Cart</button>
+                    <button onclick="event.stopPropagation(); addToCart(<?= $product['id'] ?>)">Add to Cart</button>
+                    <div class="more-details">
+                        <p><strong>Author:</strong> <?= htmlspecialchars($product['author'] ?? 'N/A') ?></p>
+                        <p><strong>ISBN:</strong> <?= htmlspecialchars($product['isbn'] ?? 'N/A') ?></p>
+                        <p><strong>Publisher:</strong> <?= htmlspecialchars($product['publisher'] ?? 'N/A') ?></p>
+                        <p><strong>Edition:</strong> <?= htmlspecialchars($product['edition'] ?? 'N/A') ?></p>
+                    </div>
                 </div>
             <?php endwhile; ?>
         </div>
@@ -150,12 +163,18 @@ if (isset($_GET['loadMore'])) {
             while ($product = mysqli_fetch_assoc($officeResult)):
                 $image = !empty($product['image_url']) ? htmlspecialchars($product['image_url']) : 'images/defaultOfficeSupplies.jpg';
             ?>
-                <div class="product-card">
+                <div class="product-card" onclick="toggleDetails(this)">
                     <img src="<?= $image ?>" alt="<?= htmlspecialchars($product['name']) ?>">
                     <h3><?= htmlspecialchars($product['name']) ?></h3>
                     <p><?= htmlspecialchars($product['description']) ?></p>
                     <p class="price">$<?= number_format($product['price'], 2) ?></p>
-                    <button onclick="addToCart(<?= $product['id'] ?>)">Add to Cart</button>
+                    <button onclick="event.stopPropagation(); addToCart(<?= $product['id'] ?>)">Add to Cart</button>
+                    <div class="more-details">
+                        <p><strong>Author:</strong> <?= htmlspecialchars($product['author'] ?? 'N/A') ?></p>
+                        <p><strong>ISBN:</strong> <?= htmlspecialchars($product['isbn'] ?? 'N/A') ?></p>
+                        <p><strong>Publisher:</strong> <?= htmlspecialchars($product['publisher'] ?? 'N/A') ?></p>
+                        <p><strong>Edition:</strong> <?= htmlspecialchars($product['edition'] ?? 'N/A') ?></p>
+                    </div>
                 </div>
             <?php endwhile; ?>
         </div>
@@ -164,5 +183,23 @@ if (isset($_GET['loadMore'])) {
         </div>
     </section>
 </main>
+<script>
+function toggleDetails(card) {
+    card.classList.toggle('expanded');
+}
+
+function addToCart(productId) {
+    fetch('home.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'add_to_cart=1&product_id=' + productId
+    })
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById('cart-count').textContent = data.cart_count;
+    });
+}
+</script>
+
 </body>
 </html>
