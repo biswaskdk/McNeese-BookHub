@@ -1,0 +1,159 @@
+/* Remove unwanted white space at top of page */
+html, body {
+    margin: 0;
+    padding: 0;
+}
+
+/* Existing styles remain unchanged */
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f2f2f2;
+}
+
+.navbar {
+    background-color: #004b87;
+    color: white;
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.navbar a {
+    color: white;
+    text-decoration: none;
+    margin-left: 20px;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.navbar a:hover {
+    text-decoration: underline;
+}
+
+.container {
+    max-width: 900px;
+    margin: 40px auto;
+    background-color: white;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+h2, h3 {
+    margin-top: 0;
+    color: #333;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+table th,
+table td {
+    padding: 12px;
+    border: 1px solid #ddd;
+    text-align: center;
+}
+
+.cart-summary {
+    font-size: 18px;
+    font-weight: bold;
+    margin-top: 20px;
+    color: #444;
+}
+
+a.remove-btn,
+a[href*="clear_cart"] {
+    color: white;
+    background-color: #dc3545;
+    padding: 6px 12px;
+    border-radius: 5px;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+a.remove-btn:hover,
+a[href*="clear_cart"]:hover {
+    background-color: #c82333;
+}
+
+.payment-section {
+    background-color: #e9f5ff;
+    padding: 25px;
+    margin-top: 30px;
+    border-radius: 10px;
+}
+
+.payment-section label {
+    display: block;
+    font-weight: bold;
+    margin-top: 12px;
+    margin-bottom: 5px;
+}
+
+.payment-section input[type="text"],
+.payment-section input[type="email"],
+.payment-section select {
+    width: 100%;
+    max-width: 400px;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    box-sizing: border-box;
+    margin-bottom: 12px;
+}
+
+#card-fields,
+#billing-fields,
+#paypal-field {
+    margin-top: 20px;
+}
+
+#card-fields input,
+#billing-fields input,
+#paypal-field input {
+    margin-bottom: 10px;
+}
+
+.card-row,
+.address-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 10px;
+    margin-bottom: 15px;
+}
+
+.card-row input,
+.address-row input {
+    flex: 1;
+    min-width: 120px;
+}
+
+#billing-fields input#address {
+    margin-bottom: 15px;
+}
+
+button[type="submit"] {
+    background-color: orange;
+    color: white;
+    padding: 12px 20px;
+    border: none;
+    font-weight: bold;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+    margin-top: 20px;
+    width: 100%;
+    max-width: 300px;
+}
+
+button[type="submit"]:hover {
+    background-color: darkorange;
+}
